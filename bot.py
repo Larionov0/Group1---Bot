@@ -40,7 +40,7 @@ class Bot:
         text: str = update['message']['text']
 
         if 'как дела' in text.lower():
-            answer = random.choices(['Хорошо', "Отлично", "Не очень", "Плохо"], [5, 2, 4, 1])[0]
+            answer = random.choices(['Хорошо', "Отлично", "Не очень", "Плохо", "Хорошечно"], [5, 2, 4, 1, 1])[0]
         else:
             answer = text + '!'
         self.send_message(chat_id, answer)
