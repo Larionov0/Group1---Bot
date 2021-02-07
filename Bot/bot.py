@@ -1,25 +1,10 @@
 import requests
-import json
 import random
 import time
-
-
-def print_structure(struct):
-    print(json.dumps(struct, indent=4))
-
-
-URL_BASE = 'https://api.telegram.org'
-TOKEN = '1583405375:AAF3aRNGS_-ksh_cuOeHddQOonlwPZ2F-bA'
-URL = f"{URL_BASE}/bot{TOKEN}"
-
-
-class User:
-    def __init__(self, chat_id, username='Новичок', coins=10):
-        self.chat_id = chat_id
-        self.username = username
-        self.coins = coins
-        self.next_message_handler = None
-        self.status = 'дерево'
+from .Classes.user import User
+from .functions import print_structure
+from .globals import URL_BASE, TOKEN, URL
+from .router import Router
 
 
 class Bot:
@@ -28,6 +13,7 @@ class Bot:
         self.last_update_id = 0
         self.url = f"{URL_BASE}/bot{token}"
         self.users = []
+        self.router = Router(self)
 
     def get_updates(self):
         response = requests.get(f"{self.url}/getUpdates?offset={self.last_update_id + 1}")
@@ -100,6 +86,7 @@ class Bot:
                '2 - чихнуть\n' \
                '3 - магазин\n' \
                '4 - удалить аккаунт\n' \
+               '5 - тест меню\n' \
                'Ваш выбор:'
         self.send_message(user.chat_id, text)
         user.next_message_handler = self.main_menu_handler
@@ -113,11 +100,35 @@ class Bot:
             self.store_menu(user)
         elif text == '4':
             pass
+        elif text == '5':
+            self.test_menu(user)
         else:
             self.send_message(user.chat_id, 'Уважаемый, такой дичи мы не видали')
 
+    def test_menu(self, user):
+        text = '---= Тестовое меню =---\n' \
+               '0 - назад\n' \
+               '1 - тест1\n' \
+               '2 - test2\n' \
+               '3 - test3\n'
+        self.send_message(user.chat_id, text)
+        user.next_message_handler = self.test_menu_handler
+
+    def test_menu_handler(self, user, text):
+        if text == '0':
+            self.main_menu(user)
+        elif text == '1':
+            self.send_message(user.chat_id, 'Тест 1')
+        elif text == '2':
+            self.send_message(user.chat_id, 'Тест 2')
+        elif text == '3':
+            self.send_message(user.chat_id, 'Тест 3')
+        else:
+            self.send_message(user.chat_id, 'Два говяжа стоят в поле')
+
     def store_menu(self, user):
         text = '----= Магазин =-----\n' \
+               '0 - назад\n' \
                '1 - купить статус серебро (10)\n' \
                '2 - купить статус золото (40)\n' \
                '3 - купить статус VIP (1000)\n' \
@@ -138,9 +149,7 @@ class Bot:
             pass
         elif text == '3':
             pass
+        elif text == '0':
+            self.main_menu(user)
         else:
             pass
-
-
-bot = Bot(TOKEN)
-bot.run()
