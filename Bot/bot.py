@@ -5,6 +5,7 @@ from .Classes.user import User
 from .functions import print_structure
 from .globals import URL_BASE, TOKEN, URL
 from .router import Router
+from .Classes.lobby import Lobby
 
 
 class Bot:
@@ -13,6 +14,7 @@ class Bot:
         self.last_update_id = 0
         self.url = f"{URL_BASE}/bot{token}"
         self.users = []
+        self.lobbies = [Lobby('главное', None), Lobby('дополнительное', None, 5)]
         self.router = Router(self)
 
     def get_updates(self):
@@ -29,7 +31,7 @@ class Bot:
             for update in updates:
                 user = self.identify_user(update)
                 text: str = update['message']['text']
-                self.answer_to_message(user, text)
+                self.router.answer_to_message(user, text)
                 self.last_update_id = update['update_id']
             time.sleep(0.5)
 
@@ -58,98 +60,5 @@ class Bot:
 
     def create_user(self, chat_id):
         user = User(chat_id)
-        user.next_message_handler = self.start_handler
+        user.next_message_handler = self.router.start_handler
         return user
-
-    def answer_to_message(self, user, text):
-        user.next_message_handler(user, text)
-
-    def start_handler(self, user, text):
-        self.send_message(user.chat_id, 'Добро пожаловать в нашего бота! Просим вам зарегистрироваться.\n'
-                                        'Введите свой никнейм:')
-        user.next_message_handler = self.registration_handler
-
-    def registration_handler(self, user, text):
-        username = text.strip()
-        if 3 <= len(username) <= 15:
-            user.username = username
-            self.send_message(user.chat_id, 'Никнейм сохранен!')
-            self.main_menu(user)
-        else:
-            self.send_message(user.chat_id, 'Попробуй еще раз:')
-
-    def main_menu(self, user):
-        text = '-----= Главное меню =----\n' \
-               f'{user.username} ({user.status})\n' \
-               f'Coins: {user.coins}\n' \
-               '1 - играть\n' \
-               '2 - чихнуть\n' \
-               '3 - магазин\n' \
-               '4 - удалить аккаунт\n' \
-               '5 - тест меню\n' \
-               'Ваш выбор:'
-        self.send_message(user.chat_id, text)
-        user.next_message_handler = self.main_menu_handler
-
-    def main_menu_handler(self, user, text):
-        if text == '1':
-            pass
-        elif text == '2':
-            self.send_message(user.chat_id, 'Апчхи!')
-        elif text == '3':
-            self.store_menu(user)
-        elif text == '4':
-            pass
-        elif text == '5':
-            self.test_menu(user)
-        else:
-            self.send_message(user.chat_id, 'Уважаемый, такой дичи мы не видали')
-
-    def test_menu(self, user):
-        text = '---= Тестовое меню =---\n' \
-               '0 - назад\n' \
-               '1 - тест1\n' \
-               '2 - test2\n' \
-               '3 - test3\n'
-        self.send_message(user.chat_id, text)
-        user.next_message_handler = self.test_menu_handler
-
-    def test_menu_handler(self, user, text):
-        if text == '0':
-            self.main_menu(user)
-        elif text == '1':
-            self.send_message(user.chat_id, 'Тест 1')
-        elif text == '2':
-            self.send_message(user.chat_id, 'Тест 2')
-        elif text == '3':
-            self.send_message(user.chat_id, 'Тест 3')
-        else:
-            self.send_message(user.chat_id, 'Два говяжа стоят в поле')
-
-    def store_menu(self, user):
-        text = '----= Магазин =-----\n' \
-               '0 - назад\n' \
-               '1 - купить статус серебро (10)\n' \
-               '2 - купить статус золото (40)\n' \
-               '3 - купить статус VIP (1000)\n' \
-               'Ваш выбор:'
-        self.send_message(user.chat_id, text)
-        user.next_message_handler = self.store_menu_handler
-
-    def store_menu_handler(self, user, text):
-        if text == '1':
-            if user.coins >= 10:
-                user.status = 'серебро'
-                self.send_message(user.chat_id, 'Теперь вы серебро!')
-                user.coins -= 10
-            else:
-                self.send_message(user.chat_id, 'Донать!!!')
-            self.main_menu(user)
-        elif text == '2':
-            pass
-        elif text == '3':
-            pass
-        elif text == '0':
-            self.main_menu(user)
-        else:
-            pass
