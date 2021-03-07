@@ -1,4 +1,5 @@
 from .functions import find_lobby_by_name
+from .Keyboards.keyboard import Keyboard, Button
 
 
 class Router:
@@ -26,22 +27,23 @@ class Router:
         text = '-----= Главное меню =----\n' \
                f'{user.username} ({user.status})\n' \
                f'Coins: {user.coins}\n' \
-               '1 - играть\n' \
-               '2 - чихнуть\n' \
-               '3 - магазин\n' \
-               '4 - удалить аккаунт\n' \
                'Ваш выбор:'
-        self.bot.send_message(user.chat_id, text)
+        keyboard = Keyboard([
+            [Button('Играть'), Button('Чихнуть')],
+            [Button('Магазин'), Button('удалить аккаунт')]
+        ])
+        self.bot.send_message(user.chat_id, text, keyboard)
         user.next_message_handler = self.main_menu_handler
 
     def main_menu_handler(self, user, text):
-        if text == '1':
+        if text == 'Играть':
             self.game_menu(user)
-        elif text == '2':
+        elif text == 'Чихнуть':
             self.bot.send_message(user.chat_id, 'Апчхи!')
-        elif text == '3':
+            self.main_menu(user)
+        elif text == 'Магазин':
             self.store_menu(user)
-        elif text == '4':
+        elif text == 'удалить аккаунт':
             pass
         else:
             self.bot.send_message(user.chat_id, 'Уважаемый, такой дичи мы не видали')

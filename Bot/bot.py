@@ -22,8 +22,12 @@ class Bot:
         dct = response.json()
         return dct['result']
 
-    def send_message(self, chat_id, text):
-        requests.get(f"{self.url}/sendMessage?chat_id={chat_id}&text={text}")
+    def send_message(self, chat_id, text, keyboard=None):
+        if keyboard:
+            keyboard_str = "&reply_markup=" + keyboard.to_json()
+        else:
+            keyboard_str = '&reply_markup=' + '{"remove_keyboard": true}'
+        requests.get(f"{self.url}/sendMessage?chat_id={chat_id}&text={text}{keyboard_str}")
 
     def run(self):
         while True:
