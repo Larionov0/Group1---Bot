@@ -10,3 +10,14 @@ def find_lobby_by_name(lobbies, name):
         if lobby.name == name:
             return lobby
     return False
+
+
+def find_lobby_by_id_str(lobbies, id_: str):
+    if not id_.isdigit():
+        return False
+    id_ = int(id_)
+
+    for lobby in lobbies:
+        if lobby.id == id_:
+            return lobby
+    return False

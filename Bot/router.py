@@ -1,4 +1,4 @@
-from .functions import find_lobby_by_name
+from .functions import find_lobby_by_id_str
 from .Keyboards.keyboard import Keyboard, Button
 
 
@@ -49,40 +49,45 @@ class Router:
             self.bot.send_message(user.chat_id, 'Уважаемый, такой дичи мы не видали')
 
     def game_menu(self, user):
-        text = '---= Game menu =---\n' \
-               '0 - назад\n' \
-               '1 - создать лобби\n' \
-               '2 - найти лобби\n' \
-               '3 - войти в лобби'
-        self.bot.send_message(user.chat_id, text)
+        keyboard = Keyboard([
+            [Button('найти лобби'), Button('войти в лобби')],
+            [Button('создать лобби')],
+            [Button('назад')]
+        ])
+        self.bot.send_message(user.chat_id, '---= Game menu =---', keyboard)
         user.next_message_handler = self.game_menu_handler
 
     def game_menu_handler(self, user, text):
-        if text == '0':
+        if text == 'назад':
             self.main_menu(user)
-        elif text == '1':
+        elif text == 'создать лобби':
             pass
-        elif text == '2':
+        elif text == 'найти лобби':
             self.lobbies_menu(user)
-        elif text == '3':
+        elif text == 'войти в лобби':
             pass
 
     def lobbies_menu(self, user):
-        text = 'Доступные лобби:\n' \
-               '0 - назад\n'
+        text = 'Доступные лобби:\n'
+        keyboard = Keyboard([[Button('назад')]])
         for lobby in self.bot.lobbies:
-            text += f'- {lobby}\n'
+            if lobby.locked is False:
+                text += f'- {lobby}\n'
         text += 'Выберите лобби по имени: '
-        self.bot.send_message(user.chat_id, text)
+        self.bot.send_message(user.chat_id, text, keyboard)
         user.next_message_handler = self.lobbies_menu_handler
 
     def lobbies_menu_handler(self, user, text):
-        if text == '0':
+        if text == 'назад':
             return self.game_menu(user)
 
-        lobby = find_lobby_by_name(self.bot.lobbies, text)
+        lobby = find_lobby_by_id_str(self.bot.lobbies, text)
         if lobby:
             self.bot.send_message(user.chat_id, 'Такое лобби существует')  # !!!
+            result = lobby.add_user(user)
+            if result is False:
+                self.bot.send_message(user.chat_id, 'Лобби занято!')
+                self.main_menu(user)
         else:
             self.bot.send_message(user.chat_id, 'Мы таких не видали:(')
 
@@ -113,3 +118,4 @@ class Router:
             self.main_menu(user)
         else:
             pass
+

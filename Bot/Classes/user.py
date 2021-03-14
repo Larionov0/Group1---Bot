@@ -5,3 +5,7 @@ class User:
         self.coins = coins
         self.next_message_handler = None
         self.status = 'дерево'
+        self.lobby = None
+
+    def __str__(self):
+        return f'[-_- {self.username} ({self.status})]'

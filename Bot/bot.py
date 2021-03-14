@@ -14,7 +14,7 @@ class Bot:
         self.last_update_id = 0
         self.url = f"{URL_BASE}/bot{token}"
         self.users = []
-        self.lobbies = [Lobby('главное', None), Lobby('дополнительное', None, 5)]
+        self.lobbies = [Lobby(1, 'главное', None, self), Lobby(2, 'дополнительное', None, self, 5)]
         self.router = Router(self)
 
     def get_updates(self):
