@@ -1,5 +1,6 @@
 from .functions import find_lobby_by_id_str
 from .Keyboards.keyboard import Keyboard, Button
+from .Classes.lobby import Lobby
 
 
 class Router:
@@ -61,7 +62,7 @@ class Router:
         if text == 'назад':
             self.main_menu(user)
         elif text == 'создать лобби':
-            pass
+            self.create_lobby(user)
         elif text == 'найти лобби':
             self.lobbies_menu(user)
         elif text == 'войти в лобби':
@@ -119,3 +120,19 @@ class Router:
         else:
             pass
 
+    def create_lobby(self, user):
+        self.bot.send_message(user.chat_id, 'Введите имя для лобби:')
+        user.next_message_handler = self.create_lobby_handler
+
+    def create_lobby_handler(self, user, text):
+        l = Lobby(self.bot.lobbies, text, user, self.bot)
+        self.bot.lobbies.append(l)
+        user.lobby = l
+        self.bot.send_message(user.chat_id, 'Теперь введите количество людей для старта:')
+        user.next_message_handler = self.input_count_for_lobby_handler
+
+    def input_count_for_lobby_handler(self, user, text):
+        count = int(text)
+        user.lobby.count = count
+        self.bot.send_message(user.chat_id, 'Лобби созданно!')
+        user.lobby.lobby_menu(user)

@@ -7,5 +7,9 @@ class User:
         self.status = 'дерево'
         self.lobby = None
 
+        self.role = None
+        self.votes_number = 0
+        self.is_voted = False
+
     def __str__(self):
         return f'[-_- {self.username} ({self.status})]'

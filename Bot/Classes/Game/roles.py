@@ -1,0 +1,2 @@
+MAFIA = 'mafia'
+CIVILIAN = 'civilian'

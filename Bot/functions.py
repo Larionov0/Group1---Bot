@@ -21,3 +21,10 @@ def find_lobby_by_id_str(lobbies, id_: str):
         if lobby.id == id_:
             return lobby
     return False
+
+
+def find_user_by_username(users, username):
+    for user in users:
+        if user.username == username:
+            return user
+    return None

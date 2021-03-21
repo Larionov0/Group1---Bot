@@ -14,7 +14,9 @@ class Bot:
         self.last_update_id = 0
         self.url = f"{URL_BASE}/bot{token}"
         self.users = []
-        self.lobbies = [Lobby(1, 'главное', None, self), Lobby(2, 'дополнительное', None, self, 5)]
+        self.lobbies = []
+        self.lobbies.append(Lobby(self.lobbies, 'главное', None, self))
+        self.lobbies.append(Lobby(self.lobbies, 'дополнительное', None, self, 5))
         self.router = Router(self)
 
     def get_updates(self):
@@ -33,10 +35,11 @@ class Bot:
         while True:
             updates = self.get_updates()
             for update in updates:
-                user = self.identify_user(update)
-                text: str = update['message']['text']
-                self.router.answer_to_message(user, text)
-                self.last_update_id = update['update_id']
+                if 'message' in update and 'text' in update['message']:
+                    user = self.identify_user(update)
+                    text: str = update['message']['text']
+                    self.router.answer_to_message(user, text)
+                    self.last_update_id = update['update_id']
             time.sleep(0.5)
 
     def identify_user(self, update):
