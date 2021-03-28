@@ -10,6 +10,7 @@ class User:
         self.role = None
         self.votes_number = 0
         self.is_voted = False
+        self.is_alive = True
 
     def __str__(self):
         return f'[-_- {self.username} ({self.status})]'
