@@ -29,6 +29,8 @@ class Lobby:
         self.locked = False
         self.time = DAY
 
+        self.users_with_question = []
+
     def add_user(self, user):
         if len(self.users) == self.count:
             return False
@@ -85,6 +87,12 @@ class Lobby:
             self.in_game_menu(user)
 
     def game_preparing(self):
+        self.time = DAY
+
+        for user in self.users:
+            user.is_alive = True
+            user.is_voted = False
+
         for user in self.users:
             user.role = CIVILIAN
             user.votes_number = 0
@@ -182,6 +190,10 @@ class Lobby:
     def start_night(self):
         self.time = NIGHT
         self.send_message_to_all_users('🌚 Ночь наступила. Всем спать!')
+
+        if self.check_if_game_ends():
+            return
+
         for user in self.users:
             self.in_game_menu(user)
 
@@ -231,9 +243,71 @@ class Lobby:
         self.time = DAY
         self.send_message_to_all_users('🌝 День наступил. Все просыпаемся!')
 
+        if self.check_if_game_ends():
+            return
+
         for user in self.users:
             user.votes_number = 0
             user.is_voted = False
 
         for user in self.users:
             self.in_game_menu(user)
+
+    def check_if_game_ends(self):
+        if self.check_if_mafia_wins():
+            self.send_message_to_all_users(
+                f"Сегодня мафия победила 😎"
+            )
+            for user in self.users:
+                if user.role == MAFIA:
+                    user.wins += 1
+            self.end_game_question()
+            return True
+
+        if self.check_if_civilian_wins():
+            self.send_message_to_all_users(
+                f"Сегодня мирные одолели преступность 🔥"
+            )
+            for user in self.users:
+                if user.role != CIVILIAN:
+                    user.wins += 1
+            self.end_game_question()
+            return True
+
+    def end_game_question(self):
+        keyboard = Keyboard([
+            [Button('Да'), Button('Нет')]
+        ])
+        self.users_with_question = self.users.copy()
+        self.users.clear()
+        self.locked = False
+        for user in self.users_with_question:
+            self.bot.send_message(user.chat_id, 'Отличная игра!) Не хотите ли еще партейку? :)', keyboard)
+            user.next_message_handler = self.end_game_question_handler
+
+    def end_game_question_handler(self, user, text):
+        if text == 'Да':
+            self.add_user(user)
+        else:
+            self.bot.router.main_menu(user)
+
+    def check_if_mafia_wins(self):
+        amount_of_alive_civs = 0
+        amount_of_alive_mafia = 0
+        for user in self.users:
+            if user.is_alive:
+                if user.role == MAFIA:
+                    amount_of_alive_mafia += 1
+                else:
+                    amount_of_alive_civs += 1
+
+        if amount_of_alive_mafia >= amount_of_alive_civs:
+            return True
+        else:
+            return False
+
+    def check_if_civilian_wins(self):
+        for user in self.users:
+            if user.role == MAFIA and user.is_alive:
+                return False
+        return True

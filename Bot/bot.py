@@ -6,6 +6,10 @@ from .functions import print_structure
 from .globals import URL_BASE, TOKEN, URL
 from .router import Router
 from .Classes.lobby import Lobby
+from .saver import Saver
+
+
+saver = Saver('Bot/Data/savings.dat')
 
 
 class Bot:
@@ -13,11 +17,19 @@ class Bot:
         self.token = token
         self.last_update_id = 0
         self.url = f"{URL_BASE}/bot{token}"
+        try:
+            self.lobbies, self.users = saver.load()
+            print('Data loaded')
+        except:
+            self.create_init_data()
+            print('Data created')
+        self.router = Router(self)
+
+    def create_init_data(self):
         self.users = []
         self.lobbies = []
         self.lobbies.append(Lobby(self.lobbies, 'главное', None, self))
         self.lobbies.append(Lobby(self.lobbies, 'дополнительное', None, self, 5))
-        self.router = Router(self)
 
     def get_updates(self):
         response = requests.get(f"{self.url}/getUpdates?offset={self.last_update_id + 1}")
@@ -32,15 +44,23 @@ class Bot:
         requests.get(f"{self.url}/sendMessage?chat_id={chat_id}&text={text}{keyboard_str}")
 
     def run(self):
-        while True:
-            updates = self.get_updates()
-            for update in updates:
-                if 'message' in update and 'text' in update['message']:
-                    user = self.identify_user(update)
-                    text: str = update['message']['text']
-                    self.router.answer_to_message(user, text)
-                    self.last_update_id = update['update_id']
-            time.sleep(0.5)
+        try:
+            i = 0
+            while True:
+                if i % 3 == 0:
+                    saver.save(self.lobbies, self.users)
+                updates = self.get_updates()
+                for update in updates:
+                    if 'message' in update and 'text' in update['message']:
+                        user = self.identify_user(update)
+                        text: str = update['message']['text']
+                        self.router.answer_to_message(user, text)
+                        self.last_update_id = update['update_id']
+                time.sleep(0.2)
+                i += 1
+        except Exception as e:
+            saver.save(self.lobbies, self.users)
+            raise e
 
     def identify_user(self, update):
         """
